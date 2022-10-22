@@ -1,6 +1,7 @@
 package wireguardreceiver
 
 import (
+	"fmt"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -16,17 +17,25 @@ func peerToMetrics(ts time.Time, deviceName string, peer *wgtypes.Peer) pmetric.
 	rs := md.ResourceMetrics().AppendEmpty()
 
 	resourceAttr := rs.Resource().Attributes()
-	resourceAttr.PutStr("device", deviceName)
+	resourceAttr.PutStr("peer.device.name", deviceName)
+	resourceAttr.PutStr("peer.name", peer.PublicKey.String())
 
 	ms := rs.ScopeMetrics().AppendEmpty().Metrics()
-	appendPeerMetrics(ms, stats, pbts)
+	appendPeerMetrics(ms, peer, pbts)
 
 	return md
 }
 
-func appendIOMetrics(ms pmetric.MetricSlice, peer *wgtypes.Peer, ts pcommon.Timestamp) {
-	gaugeI(ms, "peer.usage.rx_bytes", "By", []point{{intVal: peer.ReceiveBytes}}, ts)
-	gaugeI(ms, "peer.usage.tx_bytes", "By", []point{{intVal: peer.TransmitBytes}}, ts)
+func appendPeerMetrics(ms pmetric.MetricSlice, peer *wgtypes.Peer, ts pcommon.Timestamp) {
+	gaugeI(ms, "peer.usage.rx_bytes", "By", peer.ReceiveBytes, ts)
+	gaugeI(ms, "peer.usage.tx_bytes", "By", peer.TransmitBytes, ts)
+}
+
+func initMetric(ms pmetric.MetricSlice, name, unit string) pmetric.Metric {
+	m := ms.AppendEmpty()
+	m.SetName(fmt.Sprintf("device.%s", name))
+	m.SetUnit(unit)
+	return m
 }
 
 func gauge(ms pmetric.MetricSlice, metricName string, unit string) pmetric.NumberDataPointSlice {
@@ -35,11 +44,9 @@ func gauge(ms pmetric.MetricSlice, metricName string, unit string) pmetric.Numbe
 	return gauge.DataPoints()
 }
 
-func gaugeI(ms pmetric.MetricSlice, metricName string, unit string, points []point, ts pcommon.Timestamp) {
+func gaugeI(ms pmetric.MetricSlice, metricName string, unit string, value int64, ts pcommon.Timestamp) {
 	dataPoints := gauge(ms, metricName, unit)
-	for _, pt := range points {
-		dataPoint := dataPoints.AppendEmpty()
-		dataPoint.SetTimestamp(ts)
-		dataPoint.SetIntValue(int64(pt.intVal))
-	}
+	dataPoint := dataPoints.AppendEmpty()
+	dataPoint.SetTimestamp(ts)
+	dataPoint.SetIntValue(value)
 }

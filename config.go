@@ -1,9 +1,17 @@
 package wireguardreceiver
 
-//var _ config.Receiver = (*Config)(nil)
+import (
+	"errors"
+
+	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/receiver/scraperhelper"
+)
+
+var _ config.Receiver = (*Config)(nil)
 
 type Config struct {
-	Exclude ExcludeConfig `mapstructure:"exclude"`
+	scraperhelper.ScraperControllerSettings `mapstructure:",squash"`
+	Exclude                                 ExcludeConfig `mapstructure:"exclude"`
 }
 
 type ExcludeConfig struct {
@@ -12,4 +20,11 @@ type ExcludeConfig struct {
 
 type ExcludeInterfaceConfig struct {
 	Names []string `mapstructure:"names"`
+}
+
+func (c Config) Validate() error {
+	if c.CollectionInterval == 0 {
+		return errors.New("config.CollectorInterval must be specified")
+	}
+	return nil
 }

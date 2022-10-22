@@ -42,13 +42,19 @@ func newReceiver(config *Config, set component.ReceiverCreateSettings, nextConsu
 }
 
 func (r *receiver) scrape(ctx context.Context) (pmetric.Metrics, error) {
-	devices := r.wgClient.Devices()
+	md := pmetric.NewMetrics()
+
+	devices, err := r.wgClient.Devices()
+	if err != nil {
+		return md, err
+	}
+
 	results := make(chan pmetric.Metrics)
 
 	wg := &sync.WaitGroup{}
 	wg.Add(len(devices))
 	for _, d := range devices {
-		go func(d wgtypes.Device) {
+		go func(d *wgtypes.Device) {
 			defer wg.Done()
 			for _, peer := range d.Peers {
 				results <- peerToMetrics(time.Now(), d.Name, &peer)
@@ -59,9 +65,9 @@ func (r *receiver) scrape(ctx context.Context) (pmetric.Metrics, error) {
 	wg.Wait()
 	close(results)
 
-	md := pmetric.NewMetrics()
 	for res := range results {
-		res.md.ResourceMetrics().CopyTo(md.ResourceMetrics())
+		res.ResourceMetrics().CopyTo(md.ResourceMetrics())
 	}
+
 	return md, nil
 }

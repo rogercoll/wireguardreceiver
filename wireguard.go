@@ -19,6 +19,6 @@ type wireguardClient interface {
 	Devices() ([]*wgtypes.Device, error)
 }
 
-func newWireguardClient() (*WireguardClient, error) {
+func newWireguardClient() (wireguardClient, error) {
 	return wgctrl.New()
 }
