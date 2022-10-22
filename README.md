@@ -28,3 +28,7 @@ peer.usage.tx_bytes
 peer.device.name	## Interface name
 peer.name		## Peer's public key
 ```
+
+### Todo
+
+- [ ] Add latest handshake
