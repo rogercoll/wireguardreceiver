@@ -27,13 +27,13 @@ func peerToMetrics(ts time.Time, deviceName string, peer *wgtypes.Peer) pmetric.
 }
 
 func appendPeerMetrics(ms pmetric.MetricSlice, peer *wgtypes.Peer, ts pcommon.Timestamp) {
-	gaugeI(ms, "peer.usage.rx_bytes", "By", peer.ReceiveBytes, ts)
-	gaugeI(ms, "peer.usage.tx_bytes", "By", peer.TransmitBytes, ts)
+	gaugeI(ms, "usage.rx_bytes", "By", peer.ReceiveBytes, ts)
+	gaugeI(ms, "usage.tx_bytes", "By", peer.TransmitBytes, ts)
 }
 
 func initMetric(ms pmetric.MetricSlice, name, unit string) pmetric.Metric {
 	m := ms.AppendEmpty()
-	m.SetName(fmt.Sprintf("device.%s", name))
+	m.SetName(fmt.Sprintf("peer.%s", name))
 	m.SetUnit(unit)
 	return m
 }
