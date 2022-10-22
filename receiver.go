@@ -2,43 +2,51 @@ package wireguardreceiver
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
 )
 
 type receiver struct {
-	config   *Config
-	wgClient wireguardClient
+	config        *Config
+	wgClient      wireguardClient
+	clientFactory clientFactory
 }
 
-func newReceiver(config *Config, set component.ReceiverCreateSettings, nextConsumer consumer.Metrics) (component.MetricsReceiver, error) {
+func newReceiver(config *Config, set component.ReceiverCreateSettings, nextConsumer consumer.Metrics, clientFactory clientFactory) (component.MetricsReceiver, error) {
 	err := config.Validate()
 	if err != nil {
 		return nil, err
 	}
 
-	client, err := newWireguardClient()
-	if err != nil {
-		return nil, err
+	if clientFactory == nil {
+		clientFactory = newWireguardClient
 	}
 
 	recv := &receiver{
-		config:   config,
-		wgClient: client,
+		config:        config,
+		clientFactory: clientFactory,
 	}
 
-	scrp, err := scraperhelper.NewScraper("wireguardReceiver", recv.scrape)
+	scrp, err := scraperhelper.NewScraper(typeStr, recv.scrape, scraperhelper.WithStart(recv.start))
 	if err != nil {
 		return nil, err
 	}
 	return scraperhelper.NewScraperControllerReceiver(&recv.config.ScraperControllerSettings, set, nextConsumer, scraperhelper.AddScraper(scrp))
+}
+
+func (r *receiver) start(_ context.Context, _ component.Host) error {
+	var err error
+	r.wgClient, err = r.clientFactory()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *receiver) scrape(ctx context.Context) (pmetric.Metrics, error) {
@@ -49,24 +57,10 @@ func (r *receiver) scrape(ctx context.Context) (pmetric.Metrics, error) {
 		return md, err
 	}
 
-	results := make(chan pmetric.Metrics)
-
-	wg := &sync.WaitGroup{}
-	wg.Add(len(devices))
 	for _, d := range devices {
-		go func(d *wgtypes.Device) {
-			defer wg.Done()
-			for _, peer := range d.Peers {
-				results <- peerToMetrics(time.Now(), d.Name, &peer)
-			}
-		}(d)
-	}
-
-	wg.Wait()
-	close(results)
-
-	for res := range results {
-		res.ResourceMetrics().CopyTo(md.ResourceMetrics())
+		for _, peer := range d.Peers {
+			peerToMetrics(time.Now(), d.Name, &peer).ResourceMetrics().CopyTo(md.ResourceMetrics())
+		}
 	}
 
 	return md, nil

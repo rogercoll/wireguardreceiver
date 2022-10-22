@@ -15,6 +15,8 @@ var (
 	remoteEndpointAttributes      = 9
 )
 
+type clientFactory func() (wireguardClient, error)
+
 type wireguardClient interface {
 	Devices() ([]*wgtypes.Device, error)
 }

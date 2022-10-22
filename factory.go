@@ -43,7 +43,7 @@ func createMetricsReceiver(
 ) (component.MetricsReceiver, error) {
 
 	wireguardConfig := config.(*Config)
-	dsr, err := newReceiver(wireguardConfig, params, consumer)
+	dsr, err := newReceiver(wireguardConfig, params, consumer, nil)
 	if err != nil {
 		return nil, err
 	}
