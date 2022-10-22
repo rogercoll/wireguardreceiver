@@ -11,7 +11,8 @@ var _ config.Receiver = (*Config)(nil)
 
 type Config struct {
 	scraperhelper.ScraperControllerSettings `mapstructure:",squash"`
-	Exclude                                 ExcludeConfig `mapstructure:"exclude"`
+	// TODO: implement exclude option
+	Exclude ExcludeConfig `mapstructure:"exclude"`
 }
 
 type ExcludeConfig struct {
