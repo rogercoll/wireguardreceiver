@@ -19,7 +19,6 @@ func peerToMetrics(ts time.Time, deviceName string, peer *wgtypes.Peer) pmetric.
 	resourceAttr := rs.Resource().Attributes()
 	resourceAttr.PutStr("peer.device.name", deviceName)
 	resourceAttr.PutStr("peer.name", peer.PublicKey.String())
-
 	ms := rs.ScopeMetrics().AppendEmpty().Metrics()
 	appendPeerMetrics(ms, peer, pbts)
 
@@ -29,6 +28,7 @@ func peerToMetrics(ts time.Time, deviceName string, peer *wgtypes.Peer) pmetric.
 func appendPeerMetrics(ms pmetric.MetricSlice, peer *wgtypes.Peer, ts pcommon.Timestamp) {
 	gaugeI(ms, "usage.rx_bytes", "By", peer.ReceiveBytes, ts)
 	gaugeI(ms, "usage.tx_bytes", "By", peer.TransmitBytes, ts)
+	gaugeI(ms, "last_handshake", "s", int64(peer.LastHandshakeTime.Second()), ts)
 }
 
 func initMetric(ms pmetric.MetricSlice, name, unit string) pmetric.Metric {
