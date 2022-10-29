@@ -36,7 +36,7 @@ func assertPeerToMetrics(t *testing.T, peer *wgtypes.Peer, md pmetric.Metrics) {
 	assert.Equal(t, rsm.ScopeMetrics().Len(), 1)
 
 	metrics := rsm.ScopeMetrics().At(0).Metrics()
-	assert.Equal(t, metrics.Len(), 2)
+	assert.Equal(t, metrics.Len(), 3)
 }
 
 func getPeer() (*wgtypes.Peer, error) {

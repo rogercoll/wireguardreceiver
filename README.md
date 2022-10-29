@@ -20,6 +20,7 @@ receivers:
 ```
 peer.usage.rx_bytes
 peer.usage.tx_bytes
+peer.last_handshake
 ```
 
 ## Attributes
