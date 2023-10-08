@@ -4,20 +4,22 @@ import (
 	"context"
 	"time"
 
+	"github.com/rogercoll/wireguardreceiver/internal/metadata"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/receiver"
 
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
 )
 
-type receiver struct {
+type wgreceiver struct {
 	config        *Config
 	wgClient      wireguardClient
 	clientFactory clientFactory
 }
 
-func newReceiver(config *Config, set component.ReceiverCreateSettings, nextConsumer consumer.Metrics, clientFactory clientFactory) (component.MetricsReceiver, error) {
+func newReceiver(config *Config, set receiver.CreateSettings, nextConsumer consumer.Metrics, clientFactory clientFactory) (receiver.Metrics, error) {
 	err := config.Validate()
 	if err != nil {
 		return nil, err
@@ -27,19 +29,19 @@ func newReceiver(config *Config, set component.ReceiverCreateSettings, nextConsu
 		clientFactory = newWireguardClient
 	}
 
-	recv := &receiver{
+	recv := &wgreceiver{
 		config:        config,
 		clientFactory: clientFactory,
 	}
 
-	scrp, err := scraperhelper.NewScraper(typeStr, recv.scrape, scraperhelper.WithStart(recv.start))
+	scrp, err := scraperhelper.NewScraper(metadata.Type, recv.scrape, scraperhelper.WithStart(recv.start))
 	if err != nil {
 		return nil, err
 	}
 	return scraperhelper.NewScraperControllerReceiver(&recv.config.ScraperControllerSettings, set, nextConsumer, scraperhelper.AddScraper(scrp))
 }
 
-func (r *receiver) start(_ context.Context, _ component.Host) error {
+func (r *wgreceiver) start(_ context.Context, _ component.Host) error {
 	var err error
 	r.wgClient, err = r.clientFactory()
 	if err != nil {
@@ -49,7 +51,7 @@ func (r *receiver) start(_ context.Context, _ component.Host) error {
 	return nil
 }
 
-func (r *receiver) scrape(ctx context.Context) (pmetric.Metrics, error) {
+func (r *wgreceiver) scrape(ctx context.Context) (pmetric.Metrics, error) {
 	md := pmetric.NewMetrics()
 
 	devices, err := r.wgClient.Devices()

@@ -10,6 +10,7 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/receiver/receivertest"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
@@ -31,7 +32,7 @@ func TestScrape(t *testing.T) {
 	client := make(mockClient)
 	consumer := make(mockConsumer)
 
-	r, err := newReceiver(cfg, componenttest.NewNopReceiverCreateSettings(), consumer, client.factory)
+	r, err := newReceiver(cfg, receivertest.NewNopCreateSettings(), consumer, client.factory)
 	require.NoError(t, err)
 	assert.NotNil(t, r)
 

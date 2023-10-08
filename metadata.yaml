@@ -1,0 +1,8 @@
+type: wireguard_stats
+
+status:
+  class: receiver
+  stability:
+    development: [metrics]
+  codeowners:
+    active: [rogercoll]
