@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/rogercoll/wireguardreceiver/internal/metadata"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pmetric"
@@ -33,7 +34,7 @@ func newReceiver(config *Config, set receiver.CreateSettings, nextConsumer consu
 		clientFactory: clientFactory,
 	}
 
-	scrp, err := scraperhelper.NewScraper(typeStr, recv.scrape, scraperhelper.WithStart(recv.start))
+	scrp, err := scraperhelper.NewScraper(metadata.Type, recv.scrape, scraperhelper.WithStart(recv.start))
 	if err != nil {
 		return nil, err
 	}

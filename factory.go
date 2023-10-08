@@ -4,30 +4,26 @@ import (
 	"context"
 	"time"
 
+	"github.com/rogercoll/wireguardreceiver/internal/metadata"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
 )
 
-const (
-	typeStr   = "wireguard_stats"
-	stability = "terst"
-)
-
 func NewFactory() receiver.Factory {
 	return receiver.NewFactory(
-		typeStr,
+		metadata.Type,
 		createDefaultReceiverConfig,
-		receiver.WithMetrics(createMetricsReceiver, component.StabilityLevelAlpha))
+		receiver.WithMetrics(createMetricsReceiver, metadata.MetricsStability))
 }
 
 func createDefaultConfig() *Config {
-	scs := scraperhelper.NewDefaultScraperControllerSettings(typeStr)
-	scs.CollectionInterval = 10 * time.Second
-	scs.Timeout = 5 * time.Second
+	cfg := scraperhelper.NewDefaultScraperControllerSettings(metadata.Type)
+	cfg.CollectionInterval = 10 * time.Second
+	cfg.Timeout = 5 * time.Second
 	return &Config{
-		ScraperControllerSettings: scs,
+		ScraperControllerSettings: cfg,
 	}
 }
 
@@ -36,7 +32,7 @@ func createDefaultReceiverConfig() component.Config {
 }
 
 func createMetricsReceiver(
-	ctx context.Context,
+	_ context.Context,
 	params receiver.CreateSettings,
 	config component.Config,
 	consumer consumer.Metrics,
