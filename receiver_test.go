@@ -49,7 +49,7 @@ func TestScrape(t *testing.T) {
 	assert.NoError(t, r.Start(context.Background(), componenttest.NewNopHost()))
 
 	md := <-consumer
-	assert.Equal(t, md.ResourceMetrics().Len(), 1)
+	assert.Equal(t, 1, md.ResourceMetrics().Len())
 
 	assert.NoError(t, r.Shutdown(context.Background()))
 }

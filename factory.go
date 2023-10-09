@@ -24,6 +24,7 @@ func createDefaultConfig() *Config {
 	cfg.Timeout = 5 * time.Second
 	return &Config{
 		ScraperControllerSettings: cfg,
+		MetricsBuilderConfig:      metadata.DefaultMetricsBuilderConfig(),
 	}
 }
 

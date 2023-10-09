@@ -6,3 +6,44 @@ status:
     development: [metrics]
   codeowners:
     active: [rogercoll]
+
+resource_attributes:
+  wireguard.device.name:
+    description: "A Device is a WireGuard device."
+    type: string
+    enabled: true
+  wireguard.device.type:
+    description: "A DeviceType specifies the underlying implementation of a WireGuard device."
+    type: string
+    enum:
+      - "Linux kernel"
+      - "OpenBSD kernel"
+      - "FreeBSD kernel"
+      - "Windows kernel"
+      - "userspace"
+      - "unknown"
+    enabled: true
+  wireguard.peer.name:
+    description: "A Device is a WireGuard device."
+    type: string
+    enabled: true
+
+
+metrics:
+  # Network
+  wireguard.peer.network.io.usage.rx_bytes:
+    enabled: true
+    description: "Bytes received by the peer."
+    unit: By
+    sum:
+      aggregation_temporality: cumulative
+      value_type: int
+      monotonic: true
+  wireguard.peer.network.io.usage.tx_bytes:
+    enabled: true
+    description: "Bytes sent."
+    unit: By
+    sum:
+      aggregation_temporality: cumulative
+      value_type: int
+      monotonic: true

@@ -1,0 +1,27 @@
+default:
+all_set:
+  metrics:
+    wireguard.peer.network.io.usage.rx_bytes:
+      enabled: true
+    wireguard.peer.network.io.usage.tx_bytes:
+      enabled: true
+  resource_attributes:
+    wireguard.device.name:
+      enabled: true
+    wireguard.device.type:
+      enabled: true
+    wireguard.peer.name:
+      enabled: true
+none_set:
+  metrics:
+    wireguard.peer.network.io.usage.rx_bytes:
+      enabled: false
+    wireguard.peer.network.io.usage.tx_bytes:
+      enabled: false
+  resource_attributes:
+    wireguard.device.name:
+      enabled: false
+    wireguard.device.type:
+      enabled: false
+    wireguard.peer.name:
+      enabled: false

@@ -7,6 +7,7 @@ import (
 	"github.com/rogercoll/wireguardreceiver/internal/metadata"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/receiver"
 
@@ -17,6 +18,7 @@ type wgreceiver struct {
 	config        *Config
 	wgClient      wireguardClient
 	clientFactory clientFactory
+	mb            *metadata.MetricsBuilder
 }
 
 func newReceiver(config *Config, set receiver.CreateSettings, nextConsumer consumer.Metrics, clientFactory clientFactory) (receiver.Metrics, error) {
@@ -32,6 +34,7 @@ func newReceiver(config *Config, set receiver.CreateSettings, nextConsumer consu
 	recv := &wgreceiver{
 		config:        config,
 		clientFactory: clientFactory,
+		mb:            metadata.NewMetricsBuilder(config.MetricsBuilderConfig, set),
 	}
 
 	scrp, err := scraperhelper.NewScraper(metadata.Type, recv.scrape, scraperhelper.WithStart(recv.start))
@@ -52,18 +55,18 @@ func (r *wgreceiver) start(_ context.Context, _ component.Host) error {
 }
 
 func (r *wgreceiver) scrape(ctx context.Context) (pmetric.Metrics, error) {
-	md := pmetric.NewMetrics()
 
 	devices, err := r.wgClient.Devices()
 	if err != nil {
-		return md, err
+		return r.mb.Emit(), err
 	}
 
+	now := pcommon.NewTimestampFromTime(time.Now())
 	for _, d := range devices {
 		for _, peer := range d.Peers {
-			peerToMetrics(time.Now(), d.Name, &peer).ResourceMetrics().CopyTo(md.ResourceMetrics())
+			recordPeerMetrics(r.mb, now, d.Name, &peer)
 		}
 	}
 
-	return md, nil
+	return r.mb.Emit(), nil
 }
