@@ -3,6 +3,7 @@ package wireguardreceiver
 import (
 	"errors"
 
+	"github.com/rogercoll/wireguardreceiver/internal/metadata"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
 )
@@ -13,6 +14,9 @@ type Config struct {
 	scraperhelper.ScraperControllerSettings `mapstructure:",squash"`
 	// TODO: implement exclude option
 	Exclude ExcludeConfig `mapstructure:"exclude"`
+
+	// MetricsBuilderConfig config. Enable or disable stats by name.
+	metadata.MetricsBuilderConfig `mapstructure:",squash"`
 }
 
 type ExcludeConfig struct {

@@ -4,19 +4,21 @@ import (
 	"testing"
 	"time"
 
+	"github.com/rogercoll/wireguardreceiver/internal/metadata"
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/receiver/receivertest"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
 func TestConvertPeerToMetrics(t *testing.T) {
-	ts := time.Now()
-
 	peer, err := getPeer()
 	assert.Nil(t, err)
 
-	md := peerToMetrics(ts, "wg0", peer)
-	assertPeerToMetrics(t, peer, md)
+	mb := metadata.NewMetricsBuilder(metadata.DefaultMetricsBuilderConfig(), receivertest.NewNopCreateSettings())
+	recordPeerMetrics(mb, pcommon.NewTimestampFromTime(time.Now()), "wg0", peer)
+	assertPeerToMetrics(t, peer, mb.Emit())
 }
 
 func assertPeerToMetrics(t *testing.T, peer *wgtypes.Peer, md pmetric.Metrics) {
@@ -24,9 +26,10 @@ func assertPeerToMetrics(t *testing.T, peer *wgtypes.Peer, md pmetric.Metrics) {
 	rsm := md.ResourceMetrics().At(0)
 
 	resourceAttrs := map[string]string{
-		"peer.name":        "aPxGwq8zERHQ3Q1cOZFdJ+cvJX5Ka4mLN38AyYKYF10=",
-		"peer.device.name": "wg0",
+		"wireguard.peer.name":   "aPxGwq8zERHQ3Q1cOZFdJ+cvJX5Ka4mLN38AyYKYF10=",
+		"wireguard.device.name": "wg0",
 	}
+
 	for k, v := range resourceAttrs {
 		attr, exists := rsm.Resource().Attributes().Get(k)
 		assert.True(t, exists)
@@ -36,7 +39,7 @@ func assertPeerToMetrics(t *testing.T, peer *wgtypes.Peer, md pmetric.Metrics) {
 	assert.Equal(t, rsm.ScopeMetrics().Len(), 1)
 
 	metrics := rsm.ScopeMetrics().At(0).Metrics()
-	assert.Equal(t, metrics.Len(), 3)
+	assert.Equal(t, metrics.Len(), 2)
 }
 
 func getPeer() (*wgtypes.Peer, error) {
