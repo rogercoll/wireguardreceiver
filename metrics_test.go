@@ -22,7 +22,7 @@ func TestConvertPeerToMetrics(t *testing.T) {
 }
 
 func assertPeerToMetrics(t *testing.T, peer *wgtypes.Peer, md pmetric.Metrics) {
-	assert.Equal(t, md.ResourceMetrics().Len(), 1)
+	assert.Equal(t, 1, md.ResourceMetrics().Len())
 	rsm := md.ResourceMetrics().At(0)
 
 	resourceAttrs := map[string]string{

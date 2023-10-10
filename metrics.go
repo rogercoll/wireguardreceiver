@@ -16,5 +16,5 @@ func recordPeerMetrics(mb *metadata.MetricsBuilder, now pcommon.Timestamp, devic
 	rb.SetWireguardDeviceName(deviceName)
 	rb.SetWireguardPeerName(peer.PublicKey.String())
 
-	mb.Emit(metadata.WithResource(rb.Emit()))
+	mb.EmitForResource(metadata.WithResource(rb.Emit()))
 }
